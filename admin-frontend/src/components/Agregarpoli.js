@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../config';
 
 const AgregarPoli = () => {
   const [nuevoPoli, setNuevoPoli] = useState({
@@ -19,7 +20,7 @@ const AgregarPoli = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/adminapp/api/polideportivos/', {
+      const response = await fetch(`${API_URL}/polideportivos/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

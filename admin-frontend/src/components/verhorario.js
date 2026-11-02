@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const VerHorario = () => {
   const [data, setData] = useState([]);
@@ -6,7 +7,7 @@ const VerHorario = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/horarios/');
+        const response = await fetch(`${API_URL}/horarios/`);
         const horariosData = await response.json();
         setData(horariosData);
       } catch (error) {

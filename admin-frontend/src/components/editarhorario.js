@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const EditarHorario = () => {
   const [horarios, setHorarios] = useState([]);
@@ -20,7 +21,7 @@ const EditarHorario = () => {
   useEffect(() => {
     const cargarHorarios = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/horarios/');
+        const response = await fetch(`${API_URL}/horarios/`);
         const horariosData = await response.json();
         setHorarios(horariosData);
       } catch (error) {
@@ -63,7 +64,7 @@ const EditarHorario = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/adminapp/api/horarios/${horarioSeleccionado.id}/`, {
+      const response = await fetch(`${API_URL}/horarios/${horarioSeleccionado.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

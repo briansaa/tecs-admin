@@ -24,17 +24,17 @@ function App() {
         <Route path="/verpoli" component={Verpoli} />
         <Route path="/agregarpoli" component={AgregarPoli} />
         <Route path="/editarpoli" component={EditarPoli} />
-        <Route path="/agregarlab" component={Agregarlab} />"
-        <Route path="/editarlab" component={Editarlab} />"
+        <Route path="/agregarlab" component={Agregarlab} />
+        <Route path="/editarlab" component={Editarlab} />
         <Route path="/verlab" component={Verlab} />
-        <Route path="/agregaruser" component={Agregaruser} />"
-        <Route path="/editaruser" component={Editaruser} />"
+        <Route path="/agregaruser" component={Agregaruser} />
+        <Route path="/editaruser" component={Editaruser} />
         <Route path="/veruser" component={Veruser} />
         <Route path="/verreservapoli" component={VerReservaPoli} />
         <Route path="/verreservalab" component={VerReservaLab} />
         <Route path="/verhorario" component={VerHorario} />
-        <Route path="/editarhorario" component={EditarHorario} />"
-        <Route path="/agregarhorario" component={AgregarHorario} />"
+        <Route path="/editarhorario" component={EditarHorario} />
+        <Route path="/agregarhorario" component={AgregarHorario} />
       </Switch>
     </Router>
   );

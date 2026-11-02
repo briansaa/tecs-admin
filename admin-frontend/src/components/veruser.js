@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const VerUser = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -6,7 +7,7 @@ const VerUser = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/usuarios/');
+        const response = await fetch(`${API_URL}/usuarios/`);
         const jsonData = await response.json();
         setUsuarios(jsonData);
       } catch (error) {
@@ -34,14 +35,12 @@ const VerUser = () => {
           <thead className="thead-dark">
             <tr>
               <th scope="col">Código</th>
-              <th scope="col">Contraseña</th>
             </tr>
           </thead>
           <tbody>
             {usuarios.map(user => (
               <tr key={user.codigo}>
                 <td>{user.codigo}</td>
-                <td>{user.contrasena}</td>
               </tr>
             ))}
           </tbody>

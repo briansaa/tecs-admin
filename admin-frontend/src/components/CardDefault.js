@@ -12,7 +12,7 @@ const CardDefault = ({ title, imageSrc, description, buttonText, imageWidth, ima
       <CardHeader color="blue-gray" className="relative h-56">
         <img
           src={imageSrc}
-          alt="card-Image"
+          alt={title}
           style={{ width: imageWidth, height: imageHeight }}
         />
       </CardHeader>

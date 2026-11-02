@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const Editarlab = () => {
   const [laboratorios, setLaboratorios] = useState([]);
@@ -10,7 +11,7 @@ const Editarlab = () => {
   useEffect(() => {
     const fetchLaboratorios = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/laboratorios/');
+        const response = await fetch(`${API_URL}/laboratorios/`);
         if (response.ok) {
           const data = await response.json();
           setLaboratorios(data);
@@ -51,7 +52,7 @@ const Editarlab = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/adminapp/api/laboratorios/${labSeleccionado.id}/`, {
+      const response = await fetch(`${API_URL}/laboratorios/${labSeleccionado.id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
