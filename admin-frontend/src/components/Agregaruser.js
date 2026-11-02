@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../config';
 
 const AgregarUser = () => {
   const [nuevoUser, setNuevoUser] = useState({
@@ -20,7 +21,7 @@ const AgregarUser = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/adminapp/api/usuarios/', {
+      const response = await fetch(`${API_URL}/usuarios/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

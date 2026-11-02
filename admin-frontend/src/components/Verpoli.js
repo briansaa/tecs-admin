@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const Verpoli = () => {
   const [data, setData] = useState([]);
@@ -6,7 +7,7 @@ const Verpoli = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/polideportivos/');
+        const response = await fetch(`${API_URL}/polideportivos/`);
         const jsonData = await response.json();
         setData(jsonData);
       } catch (error) {

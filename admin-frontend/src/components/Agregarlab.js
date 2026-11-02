@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const Agregarlab = () => {
   const [nuevoLaboratorio, setNuevoLaboratorio] = useState({
@@ -12,7 +13,7 @@ const Agregarlab = () => {
   useEffect(() => {
     const fetchPabellones = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/pabellones/');
+        const response = await fetch(`${API_URL}/pabellones/`);
         if (response.ok) {
           const data = await response.json();
           setPabellones(data);
@@ -39,7 +40,7 @@ const Agregarlab = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/adminapp/api/laboratorios/', {
+      const response = await fetch(`${API_URL}/laboratorios/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

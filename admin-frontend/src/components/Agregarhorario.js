@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../config';
 
 const AgregarHorario = () => {
   const [nuevoHorario, setNuevoHorario] = useState({
@@ -18,7 +19,7 @@ const AgregarHorario = () => {
 
   const agregarHorario = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/adminapp/api/horarios/', {
+      const response = await fetch(`${API_URL}/horarios/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

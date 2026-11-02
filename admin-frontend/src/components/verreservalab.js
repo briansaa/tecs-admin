@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
+import { esFechaPasada, exportarPDF, fechaLocal } from '../utils/reportes';
 
 const VerReservaLab = () => {
   const [reservasLab, setReservasLab] = useState([]);
@@ -6,26 +8,14 @@ const VerReservaLab = () => {
   const [laboratorios, setLaboratorios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(currentDate.toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(fechaLocal());
   const [llegoReservaLocal, setLlegoReservaLocal] = useState({});
   const handleDateChange = (event) => {
     setSelectedDate(event.target.value);
   };
 
-  const isReservaDelDiaActual = (fecha) => {
-    const reservaDate = new Date(fecha);
-    const currentDateString = currentDate.toISOString().split('T')[0];
-    return reservaDate.toISOString().split('T')[0] === currentDateString;
-  };
 
-  const filteredReservas = reservasLab.filter((reservaLab) => {
-    const reservaDate = new Date(reservaLab.fecha);
-    const selectedDateObject = new Date(selectedDate);
-    return (
-      reservaDate.toISOString().split('T')[0] === selectedDateObject.toISOString().split('T')[0]
-    );
-  });
+  const filteredReservas = reservasLab.filter((r) => r.fecha === selectedDate);
 
   const handleLlegoChange = (id) => {
     setLlegoReservaLocal((prevLlegoReservaLocal) => ({
@@ -37,28 +27,23 @@ const VerReservaLab = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const reservasResponse = await fetch('http://127.0.0.1:8000/adminapp/api/reservalaboratorios/');
+        const reservasResponse = await fetch(`${API_URL}/reservalaboratorios/`);
         const reservasLabData = await reservasResponse.json();
         setReservasLab(reservasLabData);
 
-        const horariosResponse = await fetch('http://127.0.0.1:8000/adminapp/api/horarios/');
+        const horariosResponse = await fetch(`${API_URL}/horarios/`);
         const horariosData = await horariosResponse.json();
         setHorarios(horariosData);
 
-        const laboratoriosResponse = await fetch('http://127.0.0.1:8000/adminapp/api/laboratorios/');
+        const laboratoriosResponse = await fetch(`${API_URL}/laboratorios/`);
         const laboratoriosData = await laboratoriosResponse.json();
         setLaboratorios(laboratoriosData);
 
-        const usuariosResponse = await fetch('http://127.0.0.1:8000/adminapp/api/usuarios/');
+        const usuariosResponse = await fetch(`${API_URL}/usuarios/`);
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
 
         setLoading(false);
-        console.log('Datos cargados correctamente:');
-        console.log('Reservas:', reservasLabData);
-        console.log('Horarios:', horariosData);
-        console.log('Laboratorios:', laboratoriosData);
-        console.log('Usuarios:', usuariosData);
       } catch (error) {
         console.error('Error fetching reservations:', error);
       }
@@ -67,9 +52,20 @@ const VerReservaLab = () => {
     fetchData();
   }, []);
 
-  const isReservaPasada = (fecha) => {
-    const reservaDate = new Date(fecha);
-    return reservaDate < currentDate;
+  const isReservaPasada = esFechaPasada;
+
+  const handleGeneratePDF = () => {
+    exportarPDF({
+      titulo: `Reservas de laboratorios - ${selectedDate}`,
+      columnas: ['Fecha', 'Hora inicio', 'Hora fin', 'Laboratorio', 'Cod. estudiante', 'Llegó'],
+      filas: filteredReservas.map((r) => {
+        const horario = horarios.find((h) => h.id === r.Horario);
+        const espacio = laboratorios.find((e) => e.id === r.laboratorio);
+        const usuario = usuarios.find((u) => u.id === r.Usuario);
+        return [r.fecha, horario?.hora_inicio ?? 'N/A', horario?.hora_fin ?? 'N/A', espacio?.nombre ?? 'N/A', usuario?.codigo ?? 'N/A', llegoReservaLocal[r.id] ? 'Sí' : 'No'];
+      }),
+      archivo: `reservas_laboratorios_${selectedDate}.pdf`,
+    });
   };
 
   if (loading) {
@@ -110,6 +106,7 @@ const VerReservaLab = () => {
               <th scope="col">Hora Fin</th>
               <th scope="col">Nombre del laboratorio</th>
               <th scope="col">Cod. Estudiante</th>
+              <th scope="col">Asistencia</th>
             </tr>
           </thead>
           <tbody>
@@ -143,8 +140,13 @@ const VerReservaLab = () => {
             })}
           </tbody>
         </table>
-        <div className="button-group">
+        {filteredReservas.length === 0 && (
+          <p className="text-muted">No hay reservas para esta fecha.</p>
+        )}
+        <div className="button-group d-flex gap-2">
           <a href="/" className="btn btn-lg btn-primary mt-3">Regresar</a>
+          <button type="button" className="btn btn-lg btn-outline-dark mt-3" onClick={handleGeneratePDF}
+            disabled={filteredReservas.length === 0}>Descargar PDF</button>
         </div>
       </div>
     </div>

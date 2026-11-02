@@ -1,9 +1,28 @@
+import bcrypt
 from django.db import models
+
+
+def es_hash_bcrypt(valor: str) -> bool:
+    return bool(valor) and valor.startswith(('$2a$', '$2b$', '$2y$')) and len(valor) == 60
 
 
 class Usuario(models.Model):
     codigo = models.CharField(max_length=50, unique=True)
-    contrasena = models.CharField(max_length=25)
+    # Se guarda el hash BCrypt (60 caracteres), compatible con el BCryptPasswordEncoder de tecs-cliente.
+    contrasena = models.CharField(max_length=128)
+
+    def set_password(self, raw: str) -> None:
+        self.contrasena = bcrypt.hashpw(raw.encode(), bcrypt.gensalt(rounds=10)).decode()
+
+    def check_password(self, raw: str) -> bool:
+        if es_hash_bcrypt(self.contrasena):
+            return bcrypt.checkpw(raw.encode(), self.contrasena.encode())
+        return self.contrasena == raw  # usuarios antiguos con contraseña en texto plano
+
+    def save(self, *args, **kwargs):
+        if self.contrasena and not es_hash_bcrypt(self.contrasena):
+            self.set_password(self.contrasena)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.codigo

@@ -1,5 +1,6 @@
-import jsPDF from 'jspdf';
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
+import { esFechaPasada, exportarPDF, fechaLocal } from '../utils/reportes';
 
 
 const VerReservaPoli = () => {
@@ -8,24 +9,14 @@ const VerReservaPoli = () => {
   const [polideportivos, setPolideportivos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(currentDate.toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(fechaLocal());
   const [llegoReserva, setLlegoReserva] = useState({});
   const handleDateChange = (event) => {
     setSelectedDate(event.target.value);
   };
   
-  const isReservaDelDiaActual = (fecha) => {
-    const reservaDate = new Date(fecha);
-    const currentDateString = currentDate.toISOString().split('T')[0];
-    return reservaDate.toISOString().split('T')[0] === currentDateString;
-  };
   
-  const filteredReservas = reservasPoli.filter(reservaPoli => {
-    const reservaDate = new Date(reservaPoli.fecha);
-    const selectedDateObject = new Date(selectedDate);
-    return reservaDate.toISOString().split('T')[0] === selectedDateObject.toISOString().split('T')[0];
-  });
+  const filteredReservas = reservasPoli.filter((r) => r.fecha === selectedDate);
 
   const handleLlegoChange = (id) => {
     setLlegoReserva((prevLlegoReserva) => ({
@@ -37,29 +28,24 @@ const VerReservaPoli = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const reservasResponse = await fetch('http://127.0.0.1:8000/adminapp/api/reservapolideportivos/');
+        const reservasResponse = await fetch(`${API_URL}/reservapolideportivos/`);
         const reservasPoliData = await reservasResponse.json();
         setReservasPoli(reservasPoliData);
   
-        const horariosResponse = await fetch('http://127.0.0.1:8000/adminapp/api/horarios/');
+        const horariosResponse = await fetch(`${API_URL}/horarios/`);
         const horariosData = await horariosResponse.json();
         setHorarios(horariosData);
   
-        const polideportivosResponse = await fetch('http://127.0.0.1:8000/adminapp/api/polideportivos/');
+        const polideportivosResponse = await fetch(`${API_URL}/polideportivos/`);
         const polideportivosData = await polideportivosResponse.json();
         setPolideportivos(polideportivosData);
   
-        const usuariosResponse = await fetch('http://127.0.0.1:8000/adminapp/api/usuarios/');
+        const usuariosResponse = await fetch(`${API_URL}/usuarios/`);
         const usuariosData = await usuariosResponse.json();
         setUsuarios(usuariosData);
   
         setLoading(false);
   
-        console.log('Datos cargados correctamente:');
-        console.log('Reservas:', reservasPoliData);
-        console.log('Horarios:', horariosData);
-        console.log('Polideportivos:', polideportivosData);
-        console.log('Usuarios:', usuariosData);
       } catch (error) {
         console.error('Error fetching reservations:', error);
       }
@@ -68,11 +54,22 @@ const VerReservaPoli = () => {
     fetchData();
   }, []);
 
-  const isReservaPasada = (fecha) => {
-    const reservaDate = new Date(fecha);
-    return reservaDate < currentDate;
-  };
+  const isReservaPasada = esFechaPasada;
   
+
+  const handleGeneratePDF = () => {
+    exportarPDF({
+      titulo: `Reservas de polideportivos - ${selectedDate}`,
+      columnas: ['Fecha', 'Hora inicio', 'Hora fin', 'Polideportivo', 'Cod. estudiante', 'Llegó'],
+      filas: filteredReservas.map((r) => {
+        const horario = horarios.find((h) => h.id === r.Horario);
+        const espacio = polideportivos.find((e) => e.id === r.polideportivo);
+        const usuario = usuarios.find((u) => u.id === r.Usuario);
+        return [r.fecha, horario?.hora_inicio ?? 'N/A', horario?.hora_fin ?? 'N/A', espacio?.nombre ?? 'N/A', usuario?.codigo ?? 'N/A', llegoReserva[r.id] ? 'Sí' : 'No'];
+      }),
+      archivo: `reservas_polideportivos_${selectedDate}.pdf`,
+    });
+  };
 
   if (loading) {
     return <p>Cargando datos...</p>;
@@ -112,6 +109,7 @@ const VerReservaPoli = () => {
               <th scope="col">Hora Fin</th>
               <th scope="col">Nombre del polideportivo</th>
               <th scope="col">Cod. Estudiante</th>
+              <th scope="col">Asistencia</th>
             </tr>
           </thead>
           <tbody>
@@ -120,32 +118,7 @@ const VerReservaPoli = () => {
   const polideportivoEncontrado = polideportivos.find((polideportivo) => polideportivo.id === reservaPoli.polideportivo);
   const usuarioEncontrado = usuarios.find((usuario) => usuario.id === reservaPoli.Usuario);
   const reservaPasada = isReservaPasada(reservaPoli.fecha);
-  
-  const handleGeneratePDF = () => {
-    const doc = new jsPDF();
 
-    doc.text('Detalle de Reservas de Polideportivos', 20, 10);
-    doc.autoTable({
-      head: [['Fecha de reserva', 'Hora Inicio', 'Hora Fin', 'Nombre del polideportivo', 'Cod. Estudiante', 'Llegó']],
-      body: filteredReservas.map((reservaPoli) => {
-        const horarioEncontrado = horarios.find((horario) => horario.id === reservaPoli.Horario);
-        const polideportivoEncontrado = polideportivos.find((polideportivo) => polideportivo.id === reservaPoli.polideportivo);
-        const usuarioEncontrado = usuarios.find((usuario) => usuario.id === reservaPoli.Usuario);
-        const reservaPasada = isReservaPasada(reservaPoli.fecha);
-
-        return [
-          reservaPoli.fecha,
-          horarioEncontrado ? horarioEncontrado.hora_inicio : 'N/A',
-          horarioEncontrado ? horarioEncontrado.hora_fin : 'N/A',
-          polideportivoEncontrado ? polideportivoEncontrado.nombre : 'N/A',
-          usuarioEncontrado ? usuarioEncontrado.codigo : 'N/A',
-          llegoReserva[reservaPoli.id] ? 'Sí' : 'No',
-        ];
-      }),
-    });
-
-    doc.save('reservas_poli.pdf');
-  };
   return (
     <tr
       key={reservaPoli.id}
@@ -171,8 +144,13 @@ const VerReservaPoli = () => {
 })}
           </tbody>
         </table>
-        <div className="button-group">
+        {filteredReservas.length === 0 && (
+          <p className="text-muted">No hay reservas para esta fecha.</p>
+        )}
+        <div className="button-group d-flex gap-2">
           <a href="/" className="btn btn-lg btn-primary mt-3">Regresar</a>
+          <button type="button" className="btn btn-lg btn-outline-dark mt-3" onClick={handleGeneratePDF}
+            disabled={filteredReservas.length === 0}>Descargar PDF</button>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const EditarUser = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -10,7 +11,7 @@ const EditarUser = () => {
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/usuarios/');
+        const response = await fetch(`${API_URL}/usuarios/`);
         if (response.ok) {
           const data = await response.json();
           setUsuarios(data);
@@ -26,16 +27,12 @@ const EditarUser = () => {
   }, []);
 
   const handleUserChange = (event) => {
-    console.log('handleUserChange:', event.target.value);
-    console.log('userSeleccionado:', userSeleccionado);
-    console.log('nuevoCodigo:', nuevoCodigo);
-    console.log('nuevaContrasena:', nuevaContrasena);
     const codigoSeleccionado = event.target.value;
     const user = usuarios.find(item => item.codigo === codigoSeleccionado);
     setUserSeleccionado({ id: user ? user.id : null, codigo: codigoSeleccionado });
 
     setNuevoCodigo(user ? user.codigo : '');
-    setNuevaContrasena(user ? user.contrasena : '');
+    setNuevaContrasena(''); // la API ya no devuelve contraseñas
   };
 
   const handleCodigoChange = (event) => {
@@ -47,7 +44,6 @@ const EditarUser = () => {
   };
 
   const handleSubmit = async (event) => {
-    console.log('handleSubmit');
     event.preventDefault();
 
     if (!userSeleccionado.id) {
@@ -56,12 +52,12 @@ const EditarUser = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/adminapp/api/usuarios/${userSeleccionado.id}/`, {
+      const response = await fetch(`${API_URL}/usuarios/${userSeleccionado.id}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ codigo: nuevoCodigo, contrasena: nuevaContrasena }),
+        body: JSON.stringify(nuevaContrasena ? { codigo: nuevoCodigo, contrasena: nuevaContrasena } : { codigo: nuevoCodigo }),
       });
 
       if (response.ok) {
@@ -142,6 +138,8 @@ const EditarUser = () => {
                   className="form-control"
                   id="nuevaContrasena"
                   value={nuevaContrasena}
+                  placeholder="Déjalo vacío para mantener la actual"
+                  autoComplete="new-password"
                   onChange={handleContrasenaChange}
                 />
               </div>

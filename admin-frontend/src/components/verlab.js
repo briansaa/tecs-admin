@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 
 const Verlab = () => {
   const [data, setData] = useState([]);
+  const [pabellones, setPabellones] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/adminapp/api/laboratorios/');
+        const response = await fetch(`${API_URL}/laboratorios/`);
         const jsonData = await response.json();
         setData(jsonData);
+        const pabRes = await fetch(`${API_URL}/pabellones/`);
+        const pabData = await pabRes.json();
+        setPabellones(Object.fromEntries(pabData.map((p) => [p.id, p.nombre])));
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -41,7 +46,7 @@ const Verlab = () => {
             {data.map(item => (
               <tr key={item.nombre}>
                 <td>{item.nombre}</td>
-                <td>{item.pabellon}</td>
+                <td>{pabellones[item.pabellon] ?? item.pabellon}</td>
               </tr>
             ))}
           </tbody>
